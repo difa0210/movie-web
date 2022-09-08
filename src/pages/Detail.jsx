@@ -4,8 +4,6 @@ import { API } from "../config/api";
 import { AiFillStar } from "react-icons/ai";
 import { Dialog, Transition } from "@headlessui/react";
 
-const api_key = "cd09bca89e5f3ce1d4b31659a6648f78";
-
 const Detail = () => {
   const { movieId } = useParams();
   const [movie, setMovie] = useState();
@@ -29,7 +27,9 @@ const Detail = () => {
   useEffect(() => {
     const getMovie = async () => {
       try {
-        const response = await API.get(`/movie/${movieId}?api_key=${api_key}`);
+        const response = await API.get(
+          `/movie/${movieId}?api_key=cd09bca89e5f3ce1d4b31659a6648f78`
+        );
         console.log(response.data);
         setMovie(response.data);
       } catch (error) {
@@ -50,7 +50,7 @@ const Detail = () => {
       const config = {
         headers: {
           "Content-Type": "application/json;charset=utf-8",
-          Authorization: `Bearer eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiJjZDA5YmNhODllNWYzY2UxZDRiMzE2NTlhNjY0OGY3OCIsInN1YiI6IjYzMTg0YTkzZmFjNTAyMDBhMmMwZWZkMyIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.5R4cqLLGSrpy4i4O2pgX4YeHOqbICGSz0JU6Z5qSBi0`,
+          Authorization: `Bearer ${process.env.ACCESS_TOKEN}`,
         },
         params: {
           guest_session_id: "10fc9dadf5419bf3fd945b69f192a84e",
@@ -58,7 +58,7 @@ const Detail = () => {
       };
 
       const response = await API.post(
-        `/movie/${movieId}/rating?api_key=${api_key}`,
+        `/movie/${movieId}/rating?api_key=${process.env.MOVIEDB_API_KEY}`,
         body,
         config
       );
@@ -68,6 +68,15 @@ const Detail = () => {
       console.log(error);
     }
   };
+
+  if (!movie) {
+    return (
+      <button type="button" class="bg-gray-500 ..." disabled>
+        <svg class="animate-spin h-5 w-5 mr-3 ..." viewBox="0 0 24 24"></svg>
+        Loading
+      </button>
+    );
+  }
 
   return (
     <div className="">

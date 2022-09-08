@@ -4,8 +4,6 @@ import { Link } from "react-router-dom";
 import { IoSearch } from "react-icons/io5";
 import { Dialog, Transition } from "@headlessui/react";
 
-const api_key = "cd09bca89e5f3ce1d4b31659a6648f78";
-
 const Header = () => {
   const [popularMovies, setPopularMovies] = useState();
   const [searchQuery, setSearchQuery] = useState("");
@@ -37,7 +35,7 @@ const Header = () => {
       };
 
       const response = await API.post(
-        `/authentication/session/new?api_key=${api_key}`,
+        `/authentication/session/new?api_key=${process.env.MOVIEDB_API_KEY}`,
         body,
         config
       );
@@ -75,7 +73,9 @@ const Header = () => {
 
   const getPopularMovies = async () => {
     try {
-      const response = await API.get(`/movie/popular?api_key=${api_key}`);
+      const response = await API.get(
+        `/movie/popular?api_key=cd09bca89e5f3ce1d4b31659a6648f78`
+      );
       setPopularMovies(response.data.results);
     } catch (error) {
       console.log(error);
@@ -85,6 +85,15 @@ const Header = () => {
   useEffect(() => {
     getPopularMovies();
   }, []);
+
+  if (!popularMovies) {
+    return (
+      <button type="button" class="bg-gray-500 ..." disabled>
+        <svg class="animate-spin h-5 w-5 mr-3 ..." viewBox="0 0 24 24"></svg>
+        Loading
+      </button>
+    );
+  }
 
   return (
     <div className="relative py-4 mb-8">

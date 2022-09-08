@@ -3,14 +3,14 @@ import { API } from "../config/api";
 import { AiFillStar } from "react-icons/ai";
 import { Link } from "react-router-dom";
 
-const api_key = "cd09bca89e5f3ce1d4b31659a6648f78";
-
 const Home = () => {
   const [popularMovies, setPopularMovies] = useState();
 
   const getPopularMovies = async () => {
     try {
-      const response = await API.get(`/movie/popular?api_key=${api_key}`);
+      const response = await API.get(
+        `/movie/popular?api_key=cd09bca89e5f3ce1d4b31659a6648f78`
+      );
       console.log(response.data.results);
       setPopularMovies(response.data.results);
     } catch (error) {
@@ -21,6 +21,15 @@ const Home = () => {
   useEffect(() => {
     getPopularMovies();
   }, []);
+
+  if (!popularMovies) {
+    return (
+      <button type="button" class="bg-gray-500 ..." disabled>
+        <svg class="animate-spin h-5 w-5 mr-3 ..." viewBox="0 0 24 24"></svg>
+        Loading
+      </button>
+    );
+  }
 
   return (
     <div className="">
