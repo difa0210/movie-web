@@ -30,8 +30,14 @@ const Detail = () => {
         const response = await API.get(
           `/movie/${movieId}?api_key=cd09bca89e5f3ce1d4b31659a6648f78`
         );
-        console.log(response.data);
-        setMovie(response.data);
+        const responseRating = await API.get(
+          `/movie/${movieId}/account_states?api_key=cd09bca89e5f3ce1d4b31659a6648f78&session_id=${localStorage.getItem(
+            "session_id"
+          )}`
+        );
+
+        setMovie({ ...response.data, ...responseRating.data });
+        setCurrentValue(responseRating.data.rated.value);
       } catch (error) {
         console.log(error);
       }
@@ -50,19 +56,32 @@ const Detail = () => {
       const config = {
         headers: {
           "Content-Type": "application/json;charset=utf-8",
-          Authorization: `Bearer ${process.env.ACCESS_TOKEN}`,
-        },
-        params: {
-          guest_session_id: "10fc9dadf5419bf3fd945b69f192a84e",
         },
       };
 
-      const response = await API.post(
-        `/movie/${movieId}/rating?api_key=${process.env.MOVIEDB_API_KEY}`,
+      await API.post(
+        `/movie/${movieId}/rating?api_key=${
+          process.env.REACT_APP_MOVIEDB_API_KEY
+        }&session_id=${localStorage.getItem("session_id")}`,
         body,
         config
       );
-      console.log(response);
+      setMovie((prev) => ({ ...prev, rated: { value: currentValue } }));
+      setIsOpen(false);
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+  const handleDelete = async () => {
+    try {
+      await API.delete(
+        `/movie/${movieId}/rating?api_key=${
+          process.env.REACT_APP_MOVIEDB_API_KEY
+        }&session_id=${localStorage.getItem("session_id")}`
+      );
+      setMovie((prev) => ({ ...prev, rated: { value: 0 } }));
+      setCurrentValue(0);
       setIsOpen(false);
     } catch (error) {
       console.log(error);
@@ -92,14 +111,21 @@ const Detail = () => {
             />
             <div className="flex flex-col items-start">
               <p className="mb-4">{movie.overview}</p>
-              <div className="flex items-center justify-center gap-2">
+              <div className="flex items-center justify-center gap-2 mb-4">
                 <AiFillStar className="text-3xl text-yellow-500 " />
                 <span className="text-2xl">{movie.vote_average}</span>
                 <button
                   onClick={() => setIsOpen(true)}
-                  className="px-4 py-1 text-white bg-gray-500 rounded-full hover:bg-gray-600"
+                  className="px-4 py-1 text-white bg-gray-200 rounded-full hover:bg-gray-300"
                 >
-                  Rate
+                  {movie.rated.value ? (
+                    <div className="flex items-center gap-1">
+                      <AiFillStar className="text-xl text-yellow-500 " />{" "}
+                      <span className="text-black">{currentValue}</span>
+                    </div>
+                  ) : (
+                    "Rate"
+                  )}
                 </button>
               </div>
             </div>
@@ -159,13 +185,22 @@ const Detail = () => {
                       );
                     })}
                   </div>
-
-                  <button
-                    onClick={handleRating}
-                    className="px-6 py-1 mx-auto font-semibold bg-gray-200 rounded-full hover:bg-gray-300"
-                  >
-                    Rate
-                  </button>
+                  <div className="flex flex-row justify-center items-center gap-4">
+                    <button
+                      onClick={handleRating}
+                      className="px-6 py-1 mx-auto font-semibold bg-gray-200 rounded-full hover:bg-gray-300"
+                    >
+                      Rate
+                    </button>
+                    {movie.rated.value && (
+                      <button
+                        onClick={handleDelete}
+                        className="px-6 py-1 mx-auto font-semibold text-white bg-red-500 rounded-full hover:bg-red-300"
+                      >
+                        Delete Rate
+                      </button>
+                    )}
+                  </div>
                 </Dialog.Panel>
               </Transition.Child>
             </div>

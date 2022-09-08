@@ -10,7 +10,8 @@ const Header = () => {
   const [searchResult, setSearchResult] = useState([]);
   const [isOpen, setIsOpen] = useState(false);
   const [form, setForm] = useState({
-    requestToken: "",
+    username: "",
+    password: "",
   });
 
   const handleChange = (e) => {
@@ -24,8 +25,13 @@ const Header = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
+      const responseToken = await API.get(
+        `/authentication/token/new?api_key=${process.env.REACT_APP_MOVIEDB_API_KEY}`
+      );
       const body = JSON.stringify({
-        request_token: form.requestToken,
+        username: form.username,
+        password: form.password,
+        request_token: responseToken.data.request_token,
       });
 
       const config = {
@@ -33,32 +39,21 @@ const Header = () => {
           "Content-Type": "application/json",
         },
       };
-
-      const response = await API.post(
-        `/authentication/session/new?api_key=${process.env.MOVIEDB_API_KEY}`,
+      const responseLogin = await API.post(
+        `/authentication/token/validate_with_login?api_key=${process.env.REACT_APP_MOVIEDB_API_KEY}`,
         body,
         config
       );
-      console.log(response.data);
+      const response = await API.post(
+        `/authentication/session/new?api_key=${process.env.REACT_APP_MOVIEDB_API_KEY}`,
+        { request_token: responseLogin.data.request_token },
+        config
+      );
+      localStorage.setItem("session_id", response.data.session_id);
     } catch (error) {
       console.log(error);
     }
   };
-
-  //   const handleRequestToken = async () => {
-  //     try {
-  //       const response = await API.get(
-  //         `/authentication/token/new?api_key=${api_key}`
-  //       );
-  //       console.log(response.data);
-  //       setForm({
-  //         ...form,
-  //         requestToken: response.data.request_token,
-  //       });
-  //     } catch (error) {
-  //       console.log(error);
-  //     }
-  //   };
 
   const handleQuery = (e) => {
     setSearchQuery(e.target.value);
@@ -192,9 +187,17 @@ const Header = () => {
                       <input
                         className="px-4 py-2 placeholder-current bg-gray-100 rounded-full outline-none cursor-pointer"
                         type="text"
-                        placeholder="access Token"
-                        value={form.requestToken}
-                        name="requestToken"
+                        placeholder="username"
+                        value={form.username}
+                        name="username"
+                        onChange={handleChange}
+                      />
+                      <input
+                        className="px-4 py-2 placeholder-current bg-gray-100 rounded-full outline-none cursor-pointer"
+                        type="password"
+                        placeholder="password"
+                        value={form.password}
+                        name="password"
                         onChange={handleChange}
                       />
                       <button
