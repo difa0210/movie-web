@@ -3,6 +3,7 @@ import { useParams } from "react-router-dom";
 import { API } from "../config/api";
 import { AiFillStar } from "react-icons/ai";
 import { Dialog, Transition } from "@headlessui/react";
+import toast from "react-hot-toast";
 
 const Detail = () => {
   const { movieId } = useParams();
@@ -60,14 +61,15 @@ const Detail = () => {
       };
 
       await API.post(
-        `/movie/${movieId}/rating?api_key=${
-          process.env.REACT_APP_MOVIEDB_API_KEY
-        }&session_id=${localStorage.getItem("session_id")}`,
+        `/movie/${movieId}/rating?api_key=cd09bca89e5f3ce1d4b31659a6648f78&session_id=${localStorage.getItem(
+          "session_id"
+        )}`,
         body,
         config
       );
       setMovie((prev) => ({ ...prev, rated: { value: currentValue } }));
       setIsOpen(false);
+      toast.success("Rating Success");
     } catch (error) {
       console.log(error);
     }
@@ -76,13 +78,14 @@ const Detail = () => {
   const handleDelete = async () => {
     try {
       await API.delete(
-        `/movie/${movieId}/rating?api_key=${
-          process.env.REACT_APP_MOVIEDB_API_KEY
-        }&session_id=${localStorage.getItem("session_id")}`
+        `/movie/${movieId}/rating?api_key=cd09bca89e5f3ce1d4b31659a6648f78&session_id=${localStorage.getItem(
+          "session_id"
+        )}`
       );
       setMovie((prev) => ({ ...prev, rated: { value: 0 } }));
       setCurrentValue(0);
       setIsOpen(false);
+      toast.success("Delete Rating Success");
     } catch (error) {
       console.log(error);
     }
@@ -90,10 +93,9 @@ const Detail = () => {
 
   if (!movie) {
     return (
-      <button type="button" class="bg-gray-500 ..." disabled>
-        <svg class="animate-spin h-5 w-5 mr-3 ..." viewBox="0 0 24 24"></svg>
-        Loading
-      </button>
+      <div className="flex items-center justify-center h-screen">
+        <div className="w-20 h-20 border-b-2 border-gray-500 rounded-full animate-spin"></div>
+      </div>
     );
   }
 
@@ -116,7 +118,7 @@ const Detail = () => {
                 <span className="text-2xl">{movie.vote_average}</span>
                 <button
                   onClick={() => setIsOpen(true)}
-                  className="px-4 py-1 text-white bg-gray-200 rounded-full hover:bg-gray-300"
+                  className="px-4 py-1 bg-gray-200 rounded-full hover:bg-gray-300"
                 >
                   {movie.rated.value ? (
                     <div className="flex items-center gap-1">
@@ -185,7 +187,7 @@ const Detail = () => {
                       );
                     })}
                   </div>
-                  <div className="flex flex-row justify-center items-center gap-4">
+                  <div className="flex flex-row items-center justify-center gap-4">
                     <button
                       onClick={handleRating}
                       className="px-6 py-1 mx-auto font-semibold bg-gray-200 rounded-full hover:bg-gray-300"

@@ -1,10 +1,12 @@
 import React, { useEffect, useState } from "react";
 import { API } from "../config/api";
 import { AiFillStar } from "react-icons/ai";
-import { Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
+import toast from "react-hot-toast";
 
 const Home = () => {
   const [popularMovies, setPopularMovies] = useState();
+  const navigate = useNavigate();
 
   const getPopularMovies = async () => {
     try {
@@ -24,10 +26,9 @@ const Home = () => {
 
   if (!popularMovies) {
     return (
-      <button type="button" class="bg-gray-500 ..." disabled>
-        <svg class="animate-spin h-5 w-5 mr-3 ..." viewBox="0 0 24 24"></svg>
-        Loading
-      </button>
+      <div className="flex items-center justify-center h-screen">
+        <div className="w-20 h-20 border-b-2 border-gray-500 rounded-full animate-spin"></div>
+      </div>
     );
   }
 
@@ -37,8 +38,12 @@ const Home = () => {
       <div className="grid gap-6 md:grid-cols-3 lg:grid-cols-4">
         {popularMovies &&
           popularMovies.map((movie, index) => (
-            <Link
-              to={`/movie/${movie.id}`}
+            <div
+              onClick={() =>
+                localStorage.getItem("session_id")
+                  ? navigate(`/movie/${movie.id}`)
+                  : toast.error("Please Login First")
+              }
               key={index}
               className="flex flex-col items-center p-4 bg-gray-100 cursor-pointer rounded-xl"
             >
@@ -52,7 +57,7 @@ const Home = () => {
                 <AiFillStar className="text-2xl text-yellow-500 " />
                 <span className="text-xl">{movie.vote_average}</span>
               </div>
-            </Link>
+            </div>
           ))}
       </div>
     </div>

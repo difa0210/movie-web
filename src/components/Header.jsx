@@ -1,10 +1,12 @@
-import React, { Fragment, useEffect, useState } from "react";
+import React, { Fragment, useContext, useEffect, useState } from "react";
 import { API } from "../config/api";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { IoSearch } from "react-icons/io5";
 import { Dialog, Transition } from "@headlessui/react";
+import toast from "react-hot-toast";
 
 const Header = () => {
+  const navigate = useNavigate();
   const [popularMovies, setPopularMovies] = useState();
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResult, setSearchResult] = useState([]);
@@ -26,7 +28,7 @@ const Header = () => {
     e.preventDefault();
     try {
       const responseToken = await API.get(
-        `/authentication/token/new?api_key=${process.env.REACT_APP_MOVIEDB_API_KEY}`
+        `/authentication/token/new?api_key=cd09bca89e5f3ce1d4b31659a6648f78`
       );
       const body = JSON.stringify({
         username: form.username,
@@ -40,18 +42,24 @@ const Header = () => {
         },
       };
       const responseLogin = await API.post(
-        `/authentication/token/validate_with_login?api_key=${process.env.REACT_APP_MOVIEDB_API_KEY}`,
+        `/authentication/token/validate_with_login?api_key=cd09bca89e5f3ce1d4b31659a6648f78`,
         body,
         config
       );
       const response = await API.post(
-        `/authentication/session/new?api_key=${process.env.REACT_APP_MOVIEDB_API_KEY}`,
+        `/authentication/session/new?api_key=cd09bca89e5f3ce1d4b31659a6648f78`,
         { request_token: responseLogin.data.request_token },
         config
       );
       localStorage.setItem("session_id", response.data.session_id);
+      setIsOpen(false);
+      toast.success("Login success");
     } catch (error) {
-      console.log(error);
+      if (error.response.status === 401) {
+        toast.error(
+          "Username or password is wrong, please login with your TMDB API account"
+        );
+      }
     }
   };
 
@@ -83,10 +91,9 @@ const Header = () => {
 
   if (!popularMovies) {
     return (
-      <button type="button" class="bg-gray-500 ..." disabled>
-        <svg class="animate-spin h-5 w-5 mr-3 ..." viewBox="0 0 24 24"></svg>
-        Loading
-      </button>
+      <div className="flex items-center justify-center h-screen">
+        <div className="w-20 h-20 border-b-2 border-gray-500 rounded-full animate-spin"></div>
+      </div>
     );
   }
 
@@ -99,9 +106,9 @@ const Header = () => {
               setSearchQuery("");
               setSearchResult([]);
             }}
-            className="mr-auto text-xl font-medium"
+            className="flex gap-2 mr-2 text-xl font-medium md:mr-auto"
           >
-            Movie Rate
+            Movie <span className="hidden md:flex">Rate</span>
           </button>
         </Link>
         <div className="flex gap-6">
@@ -117,24 +124,49 @@ const Header = () => {
               <IoSearch className="" />
             </div>
           </form>
-          <button onClick={() => setIsOpen(true)}>Login</button>
+          {localStorage.getItem("session_id") ? (
+            <Link to={"/"}>
+              <button
+                onClick={() => {
+                  localStorage.removeItem("session_id");
+                  toast.success("Logout Success");
+                  window.location.reload();
+                }}
+                className="px-4 py-2 text-sm font-medium text-white bg-red-500 rounded-full"
+              >
+                Logout
+              </button>
+            </Link>
+          ) : (
+            <button
+              onClick={() => setIsOpen(true)}
+              className="px-4 py-2 text-sm font-medium text-white bg-red-500 rounded-full"
+            >
+              Login
+            </button>
+          )}
         </div>
       </div>
       <div
-        className={`absolute right-0 p-2 overflow-y-auto ${
+        className={`absolute right-24 p-2 overflow-y-auto ${
           (searchResult?.length > 0 || searchQuery !== "") &&
           "bg-white shadow-xl"
-        } w-[24rem] max-h-[20rem] top-20 rounded-xl`}
+        } md:w-[24rem] max-h-[20rem] top-20 rounded-xl`}
       >
         {searchResult?.length > 0
           ? searchResult.map((movie) => (
-              <Link
+              <div
                 className="flex items-center gap-2 p-2 mb-3 cursor-pointer rounded-xl hover:bg-gray-200"
                 key={movie.id}
                 to={`/movie/${movie.id}`}
                 onClick={() => {
-                  setSearchQuery("");
-                  setSearchResult([]);
+                  localStorage.getItem("session_id")
+                    ? navigate(`/movie/${movie.id}`) &&
+                      setSearchQuery("") &&
+                      setSearchResult([])
+                    : toast.error("Please Login First") &&
+                      setSearchQuery("") &&
+                      setSearchResult([]);
                 }}
               >
                 <img
@@ -143,7 +175,7 @@ const Header = () => {
                   alt={movie.title}
                 />
                 <p>{movie.title}</p>
-              </Link>
+              </div>
             ))
           : searchQuery !== "" && (
               <p className="p-2 text-center">No Result Found</p>
