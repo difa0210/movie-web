@@ -1,30 +1,14 @@
-import React, { useEffect, useState } from "react";
-import { API } from "../config/api";
+import React from "react";
 import { AiFillStar } from "react-icons/ai";
 import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
+import { useSelector } from "react-redux";
 
 const Home = () => {
-  const [popularMovies, setPopularMovies] = useState();
+  const { movie, user } = useSelector((state) => state);
   const navigate = useNavigate();
 
-  const getPopularMovies = async () => {
-    try {
-      const response = await API.get(
-        `/movie/popular?api_key=cd09bca89e5f3ce1d4b31659a6648f78`
-      );
-      console.log(response.data.results);
-      setPopularMovies(response.data.results);
-    } catch (error) {
-      console.log(error);
-    }
-  };
-
-  useEffect(() => {
-    getPopularMovies();
-  }, []);
-
-  if (!popularMovies) {
+  if (!movie.items) {
     return (
       <div className="flex items-center justify-center h-screen">
         <div className="w-20 h-20 border-b-2 border-gray-500 rounded-full animate-spin"></div>
@@ -36,11 +20,11 @@ const Home = () => {
     <div className="">
       <p className="mb-12 text-4xl font-bold">Popular Movies</p>
       <div className="grid gap-6 md:grid-cols-3 lg:grid-cols-4">
-        {popularMovies &&
-          popularMovies.map((movie, index) => (
+        {movie.items &&
+          movie.items.map((movie, index) => (
             <div
               onClick={() =>
-                localStorage.getItem("session_id")
+                user.data
                   ? navigate(`/movie/${movie.id}`)
                   : toast.error("Please Login First")
               }

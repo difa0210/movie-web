@@ -1,13 +1,18 @@
-import React, { Fragment, useContext, useEffect, useState } from "react";
+import React, { Fragment, useState } from "react";
 import { API } from "../config/api";
 import { Link, useNavigate } from "react-router-dom";
 import { IoSearch } from "react-icons/io5";
 import { Dialog, Transition } from "@headlessui/react";
 import toast from "react-hot-toast";
+import { useDispatch, useSelector } from "react-redux";
+import { logout } from "../redux/actions/user";
+
+const api_key = "cd09bca89e5f3ce1d4b31659a6648f78";
 
 const Header = () => {
+  const { user, movie } = useSelector((state) => state);
+  const dispatch = useDispatch();
   const navigate = useNavigate();
-  const [popularMovies, setPopularMovies] = useState();
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResult, setSearchResult] = useState([]);
   const [isOpen, setIsOpen] = useState(false);
@@ -28,7 +33,7 @@ const Header = () => {
     e.preventDefault();
     try {
       const responseToken = await API.get(
-        `/authentication/token/new?api_key=cd09bca89e5f3ce1d4b31659a6648f78`
+        `/authentication/token/new?api_key=${api_key}`
       );
       const body = JSON.stringify({
         username: form.username,
@@ -42,18 +47,19 @@ const Header = () => {
         },
       };
       const responseLogin = await API.post(
-        `/authentication/token/validate_with_login?api_key=cd09bca89e5f3ce1d4b31659a6648f78`,
+        `/authentication/token/validate_with_login?api_key=${api_key}`,
         body,
         config
       );
       const response = await API.post(
-        `/authentication/session/new?api_key=cd09bca89e5f3ce1d4b31659a6648f78`,
+        `/authentication/session/new?api_key=${api_key}`,
         { request_token: responseLogin.data.request_token },
         config
       );
       localStorage.setItem("session_id", response.data.session_id);
       setIsOpen(false);
       toast.success("Login success");
+      window.location.reload();
     } catch (error) {
       if (error.response.status === 401) {
         toast.error(
@@ -65,7 +71,7 @@ const Header = () => {
 
   const handleQuery = (e) => {
     setSearchQuery(e.target.value);
-    const filtered = popularMovies.filter((movie) =>
+    const filtered = movie.items.filter((movie) =>
       movie.title.toLowerCase().includes(e.target.value.toLowerCase())
     );
     setSearchResult(filtered);
@@ -74,22 +80,12 @@ const Header = () => {
     }
   };
 
-  const getPopularMovies = async () => {
-    try {
-      const response = await API.get(
-        `/movie/popular?api_key=cd09bca89e5f3ce1d4b31659a6648f78`
-      );
-      setPopularMovies(response.data.results);
-    } catch (error) {
-      console.log(error);
-    }
+  const handleEmpty = () => {
+    setSearchQuery("");
+    setSearchResult([]);
   };
 
-  useEffect(() => {
-    getPopularMovies();
-  }, []);
-
-  if (!popularMovies) {
+  if (!movie.items) {
     return (
       <div className="flex items-center justify-center h-screen">
         <div className="w-20 h-20 border-b-2 border-gray-500 rounded-full animate-spin"></div>
@@ -102,10 +98,7 @@ const Header = () => {
       <div className="flex items-center justify-between">
         <Link to={"/"}>
           <button
-            onClick={() => {
-              setSearchQuery("");
-              setSearchResult([]);
-            }}
+            onClick={handleEmpty}
             className="flex gap-2 mr-2 text-xl font-medium md:mr-auto"
           >
             Movie <span className="hidden md:flex">Rate</span>
@@ -124,23 +117,22 @@ const Header = () => {
               <IoSearch className="" />
             </div>
           </form>
-          {localStorage.getItem("session_id") ? (
-            <Link to={"/"}>
-              <button
-                onClick={() => {
-                  localStorage.removeItem("session_id");
-                  toast.success("Logout Success");
-                  window.location.reload();
-                }}
-                className="px-4 py-2 text-sm font-medium text-white bg-red-500 rounded-full"
-              >
-                Logout
-              </button>
-            </Link>
+          {user.data ? (
+            <button
+              className="px-4 py-2 text-sm font-medium text-white bg-red-500 rounded-full"
+              to="/"
+              onClick={() => {
+                dispatch(logout());
+                toast.success("Logout Success");
+                navigate("/");
+              }}
+            >
+              Logout
+            </button>
           ) : (
             <button
               onClick={() => setIsOpen(true)}
-              className="px-4 py-2 text-sm font-medium text-white bg-red-500 rounded-full"
+              className="px-4 py-2 text-sm font-medium text-white bg-black rounded-full"
             >
               Login
             </button>
@@ -158,16 +150,17 @@ const Header = () => {
               <div
                 className="flex items-center gap-2 p-2 mb-3 cursor-pointer rounded-xl hover:bg-gray-200"
                 key={movie.id}
-                to={`/movie/${movie.id}`}
-                onClick={() => {
-                  localStorage.getItem("session_id")
-                    ? navigate(`/movie/${movie.id}`) &&
-                      setSearchQuery("") &&
-                      setSearchResult([])
-                    : toast.error("Please Login First") &&
-                      setSearchQuery("") &&
-                      setSearchResult([]);
-                }}
+                onClick={
+                  user.data
+                    ? () => {
+                        navigate(`/movie/${movie.id}`);
+                        handleEmpty();
+                      }
+                    : () => {
+                        toast.error("Please login first");
+                        handleEmpty();
+                      }
+                }
               >
                 <img
                   className="w-[3rem] h-[3rem] rounded-xl"
@@ -209,10 +202,10 @@ const Header = () => {
                 leaveFrom="opacity-100 scale-100"
                 leaveTo="opacity-0 scale-95"
               >
-                <Dialog.Panel className="flex flex-col items-center w-full max-w-md p-4 overflow-hidden text-left transition-all transform bg-white border min-h-xl rounded-3xl">
+                <Dialog.Panel className="flex flex-col items-center w-full max-w-md py-12 overflow-hidden text-left transition-all transform bg-white border min-h-xl h-2xl rounded-3xl">
                   <div className="w-full px-2 overflow-y-scroll max-h-md"></div>
-                  <div className="w-full px-2 my-4 font-medium text-center">
-                    <div className="mb-2 text-gray-500">Login</div>
+                  <div className="w-full px-2 mb-4 font-medium text-center">
+                    <div className="mb-2 text-gray-700">Login</div>
                   </div>
                   <div>
                     <form className="flex flex-col gap-4">
@@ -233,7 +226,7 @@ const Header = () => {
                         onChange={handleChange}
                       />
                       <button
-                        className="px-4 py-2 text-white bg-black rounded-full outline-none cursor-pointer"
+                        className="px-4 py-2 mt-4 text-white bg-black rounded-full outline-none cursor-pointer"
                         type="submit"
                         onClick={handleSubmit}
                       >
