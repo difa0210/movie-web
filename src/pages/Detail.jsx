@@ -44,7 +44,7 @@ const Detail = () => {
     };
 
     getMovie();
-  }, [movieId]);
+  }, [movieId, session_id]);
 
   const handleRating = async (e) => {
     e.preventDefault();

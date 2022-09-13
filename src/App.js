@@ -12,19 +12,19 @@ function App() {
   const dispatch = useDispatch();
   const session_id = localStorage.getItem("session_id");
 
-  const getMovie = async () => {
-    try {
-      const response = await API.get(
-        `/movie/popular?api_key=${process.env.REACT_APP_MOVIEDB_API_KEY}`
-      );
-      console.log(response.data.results);
-      dispatch(insertMovie(response.data.results));
-    } catch (error) {
-      console.log(error);
-    }
-  };
-
   useEffect(() => {
+    const getMovie = async () => {
+      try {
+        const response = await API.get(
+          `/movie/popular?api_key=${process.env.REACT_APP_MOVIEDB_API_KEY}`
+        );
+        console.log(response.data.results);
+        dispatch(insertMovie(response.data.results));
+      } catch (error) {
+        console.log(error);
+      }
+    };
+
     const checkAccount = async () => {
       try {
         const response = await API.get(
@@ -37,7 +37,7 @@ function App() {
     };
     checkAccount();
     getMovie();
-  }, []);
+  }, [session_id, dispatch]);
 
   return (
     <Router>
