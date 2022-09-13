@@ -7,8 +7,6 @@ import toast from "react-hot-toast";
 import { useDispatch, useSelector } from "react-redux";
 import { logout } from "../redux/actions/user";
 
-const api_key = "cd09bca89e5f3ce1d4b31659a6648f78";
-
 const Header = () => {
   const { user, movie } = useSelector((state) => state);
   const dispatch = useDispatch();
@@ -47,7 +45,7 @@ const Header = () => {
         },
       };
       const responseLogin = await API.post(
-        `/authentication/token/validate_with_login?api_key=${api_key}`,
+        `/authentication/token/validate_with_login?api_key=${process.env.REACT_APP_MOVIEDB_API_KEY}`,
         body,
         config
       );

@@ -34,6 +34,7 @@ function App() {
         console.log(error);
       }
     };
+    
     checkAccount();
     getMovie();
   }, [session_id, dispatch]);
