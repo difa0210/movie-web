@@ -33,7 +33,7 @@ const Header = () => {
     e.preventDefault();
     try {
       const responseToken = await API.get(
-        `/authentication/token/new?api_key=${api_key}`
+        `/authentication/token/new?api_key=${process.env.REACT_APP_MOVIEDB_API_KEY}`
       );
       const body = JSON.stringify({
         username: form.username,
@@ -52,7 +52,7 @@ const Header = () => {
         config
       );
       const response = await API.post(
-        `/authentication/session/new?api_key=${api_key}`,
+        `/authentication/session/new?api_key=${process.env.REACT_APP_MOVIEDB_API_KEY}`,
         { request_token: responseLogin.data.request_token },
         config
       );

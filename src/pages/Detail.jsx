@@ -5,8 +5,6 @@ import { AiFillStar } from "react-icons/ai";
 import { Dialog, Transition } from "@headlessui/react";
 import toast from "react-hot-toast";
 
-const api_key = "cd09bca89e5f3ce1d4b31659a6648f78";
-
 const Detail = () => {
   const session_id = localStorage.getItem("session_id");
   const { movieId } = useParams();
@@ -31,9 +29,11 @@ const Detail = () => {
   useEffect(() => {
     const getMovie = async () => {
       try {
-        const response = await API.get(`/movie/${movieId}?api_key=${api_key}`);
+        const response = await API.get(
+          `/movie/${movieId}?api_key=${process.env.REACT_APP_MOVIEDB_API_KEY}`
+        );
         const responseRating = await API.get(
-          `/movie/${movieId}/account_states?api_key=${api_key}&session_id=${session_id}`
+          `/movie/${movieId}/account_states?api_key=${process.env.REACT_APP_MOVIEDB_API_KEY}&session_id=${session_id}`
         );
 
         setMovie({ ...response.data, ...responseRating.data });
@@ -60,7 +60,7 @@ const Detail = () => {
       };
 
       await API.post(
-        `/movie/${movieId}/rating?api_key=${api_key}&session_id=${session_id}`,
+        `/movie/${movieId}/rating?api_key=${process.env.REACT_APP_MOVIEDB_API_KEY}&session_id=${session_id}`,
         body,
         config
       );
@@ -75,7 +75,7 @@ const Detail = () => {
   const handleDelete = async () => {
     try {
       await API.delete(
-        `/movie/${movieId}/rating?api_key=${api_key}&session_id=${session_id}`
+        `/movie/${movieId}/rating?api_key=${process.env.REACT_APP_MOVIEDB_API_KEY}&session_id=${session_id}`
       );
       setMovie((prev) => ({ ...prev, rated: { value: 0 } }));
       setCurrentValue(0);

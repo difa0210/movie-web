@@ -8,15 +8,15 @@ import { login } from "./redux/actions/user";
 import { insertMovie } from "./redux/actions/movie";
 import { useEffect } from "react";
 
-const api_key = "cd09bca89e5f3ce1d4b31659a6648f78";
-
 function App() {
   const dispatch = useDispatch();
   const session_id = localStorage.getItem("session_id");
 
   const getMovie = async () => {
     try {
-      const response = await API.get(`/movie/popular?api_key=${api_key}`);
+      const response = await API.get(
+        `/movie/popular?api_key=${process.env.REACT_APP_MOVIEDB_API_KEY}`
+      );
       console.log(response.data.results);
       dispatch(insertMovie(response.data.results));
     } catch (error) {
@@ -28,9 +28,8 @@ function App() {
     const checkAccount = async () => {
       try {
         const response = await API.get(
-          `/account?api_key=${api_key}&session_id=${session_id}`
+          `/account?api_key=${process.env.REACT_APP_MOVIEDB_API_KEY}&session_id=${session_id}`
         );
-        console.log(response.data);
         dispatch(login(response.data));
       } catch (error) {
         console.log(error);
