@@ -18,7 +18,6 @@ function App() {
         const response = await API.get(
           `/movie/popular?api_key=${process.env.REACT_APP_MOVIEDB_API_KEY}`
         );
-        console.log(response.data.results);
         dispatch(insertMovie(response.data.results));
       } catch (error) {
         console.log(error);
